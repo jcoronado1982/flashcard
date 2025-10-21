@@ -1,3 +1,4 @@
+// src/features/flashcards/Flashcard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 
 const API_URL = 'http://127.0.0.1:8000';
@@ -45,6 +46,7 @@ function Flashcard({ cardData, onOpenIpaModal, setAppMessage, updateCardImagePat
         setIsFlipped(false);
         setIsImageLoading(true);
         setImageUrl(null);
+        // Inicializa el estado de blur para todas las definiciones
         setBlurredState(cardData.definitions.reduce((acc, _, index) => ({ ...acc, [index]: true }), {}));
         setActiveAudioText(null);
         setHighlightedWordIndex(-1);
@@ -124,8 +126,10 @@ function Flashcard({ cardData, onOpenIpaModal, setAppMessage, updateCardImagePat
 
     return (
         <div className="flashcard-container">
+            {/* El click aquí voltea la tarjeta */}
             <div className={`card ${isFlipped ? 'flipped' : ''}`} onClick={() => setIsFlipped(p => !p)}>
                 <div className="card-front">
+                    {/* El e.stopPropagation() previene que el click en el botón voltee la tarjeta */}
                     <button id="soundButton" onClick={(e) => { e.stopPropagation(); playAudio(cardData.name); }}>🔊</button>
                     <h2 id="name">
                         {cardData.name.split(' ').map((word, index) => (
@@ -136,13 +140,16 @@ function Flashcard({ cardData, onOpenIpaModal, setAppMessage, updateCardImagePat
                     </h2>
                     <div className="phonetic-container">
                         <p className="phonetic">{cardData.phonetic}</p>
+                        {/* El e.stopPropagation() previene que el click en el botón voltee la tarjeta */}
                         <button id="ipaChartBtn" onClick={(e) => { e.stopPropagation(); onOpenIpaModal(); }}>📖</button>
                     </div>
                     <div id="allExamplesContainer">
                         <ul>
                             {cardData.definitions.map((def, defIndex) => (
                                 <li key={defIndex}>
+                                    {/* El e.stopPropagation() previene que el click en el botón voltee la tarjeta */}
                                     <button onClick={(e) => { e.stopPropagation(); playAudio(def.usage_example); }}>🔊</button>
+                                    {/* El e.stopPropagation() previene que el click en el texto voltee la tarjeta */}
                                     <div className={blurredState[defIndex] ? 'blurred-text' : ''} onClick={(e) => { e.stopPropagation(); toggleBlur(defIndex); }}>
                                         {def.usage_example.split(' ').map((word, wordIndex) => (
                                             <span key={wordIndex} className={activeAudioText === def.usage_example && highlightedWordIndex === wordIndex ? 'highlighted-word' : ''}>
@@ -165,23 +172,23 @@ function Flashcard({ cardData, onOpenIpaModal, setAppMessage, updateCardImagePat
                 </div>
                 <div className="card-back">
                     {cardData.definitions.map((def, index) => (
-                         <div key={index} className="definition-block-back">
-                             <p className="meaning-sentence">
-                                <span className="phrasal-verb-back">{cardData.name}</span> significa <strong className="meaning-back">{def.meaning}</strong>
-                             </p>
-                             <p 
-                                className="usage-example-en"
-                                dangerouslySetInnerHTML={{ 
-                                    __html: `"${def.usage_example.replace(new RegExp(`\\b(${cardData.name})\\b`, 'gi'), `<strong>$1</strong>`)}"`
-                                }}
-                             />
-                             {def.alternative_example && (
-                                <p className="alternative-example">
-                                    <em>Alternativa:</em> "{def.alternative_example}"
-                                </p>
-                             )}
-                             <p className="usage-example-es">{def.usage_example_es}</p>
-                         </div>
+                               <div key={index} className="definition-block-back">
+                                   <p className="meaning-sentence">
+                                       <span className="phrasal-verb-back">{cardData.name}</span> significa <strong className="meaning-back">{def.meaning}</strong>
+                                   </p>
+                                   <p 
+                                       className="usage-example-en"
+                                       dangerouslySetInnerHTML={{ 
+                                           __html: `"${def.usage_example.replace(new RegExp(`\\b(${cardData.name})\\b`, 'gi'), `<strong>$1</strong>`)}"`
+                                       }}
+                                   />
+                                   {def.alternative_example && (
+                                       <p className="alternative-example">
+                                           <em>Alternativa:</em> "{def.alternative_example}"
+                                       </p>
+                                   )}
+                                   <p className="usage-example-es">{def.usage_example_es}</p>
+                               </div>
                     ))}
                 </div>
             </div>

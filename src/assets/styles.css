@@ -313,3 +313,44 @@ body {
 #allExamplesContainer li:hover {
   z-index: 20;
 }
+/* src/static/styles.css */
+
+.deck-select-dropdown {
+    /* Mantenemos el padding y tamaño base */
+    padding: 10px 25px 10px 15px; /* Aumentar el padding vertical y a la derecha */
+    border: 2px solid #007bff; /* Borde azul más grueso (la clave) */
+    border-radius: 12px; /* Aumentar la redondez */
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #007bff;
+    background-color: #ffffff; /* Fondo blanco para que el azul destaque */
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+    transition: all 0.2s ease-in-out;
+    -webkit-appearance: none; /* Quitar el estilo nativo de Chrome/Safari */
+    -moz-appearance: none;    /* Quitar el estilo nativo de Firefox */
+    appearance: none;         /* Quitar el estilo nativo */
+    
+    /* Nueva adición: Flecha personalizada para reemplazar la nativa */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.deck-select-dropdown:hover {
+    border-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.deck-select-dropdown:focus {
+    outline: none;
+    border-color: #0056b3;
+}
+
+.deck-select-dropdown option:checked,
+.deck-select-dropdown option:hover {
+    /* Esto solo funciona en algunos navegadores modernos
+       o para el estado "checked" una vez seleccionado */
+    background-color: #007bff;
+    color: white;
+}
