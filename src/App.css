@@ -1,0 +1,47 @@
+/* src/App.css */
+
+.app-container {
+  display: flex;
+  flex-direction: column; /* Mantiene Flashcard y Controls uno encima del otro */
+  align-items: center; /* Centra horizontalmente los hijos */
+  width: 100%; /* Ocupa el ancho disponible */
+  padding: 20px 0; /* Añade espacio arriba/abajo */
+  box-sizing: border-box;
+}
+
+#message { /* Mantén el estilo del mensaje si estaba aquí */
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
+    height: 20px;
+    transition: color 0.3s ease;
+    text-align: center; /* Centra el texto del mensaje */
+}
+
+.all-done-message { /* Mantén el estilo del mensaje de completado */
+    font-size: 1.8em;
+    font-weight: 600;
+    color: #28a745;
+    text-align: center;
+    padding: 50px;
+}
+
+/* Puedes añadir otros estilos específicos de App aquí */
+
+/* --- IDs para Posicionamiento Botones IPA (GLOBAL) --- */
+/* Estos IDs DEBEN estar en un archivo CSS global */
+
+#ipa-i-long  { top: 13px; left: 40px; }
+#ipa-i-short { top: 60px; left: 130px; }
+#ipa-e       { top: 224px; left: 180px; }
+#ipa-ae      { top: 328px; left: 248px; }
+#ipa-schwa   { top: 165px; left: 300px; } /* Corresponde a 'ɚ' */
+#ipa-uh      { top: 224px; left: 354px; } /* Corresponde a 'ʌ' */
+#ipa-a-long  { top: 330px; left: 460px; } /* Corresponde a 'ɑ' */
+#ipa-o-long  { top: 164px; left: 462px; } /* Corresponde a 'ɔ' */
+#ipa-u-short { top: 60px; left: 410px; }  /* Corresponde a 'ʊ' */
+#ipa-u-long  { top: 13px; left: 462px; }  /* Corresponde a 'u' */
+#ipa-o-short { top: 330px; left: 400px; } /* Corresponde a 'ɒ' */
+#ipa-er      { top: 224px; left: 318px; } /* Corresponde a 'ɝ' */
+
+/* --- Fin IDs Posicionamiento --- */

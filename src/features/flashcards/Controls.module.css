@@ -1,0 +1,186 @@
+/* src/features/flashcards/Controls.module.css */
+
+.controlsWrapper {
+    display: flex;
+    flex-direction: column; /* Stack selector and controls vertically */
+    align-items: center;
+    gap: 20px; /* Increased gap */
+    margin-top: 20px; /* Adjusted margin */
+    width: 100%;
+    max-width: 600px;
+    padding: 0 10px; /* Add some padding on smaller screens */
+    box-sizing: border-box;
+}
+
+.deckSelectorContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px; /* Add some space below selector */
+}
+
+.deckSelectorLabel {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap; /* Prevent label wrapping */
+}
+
+.deckSelectDropdown {
+    padding: 10px 35px 10px 15px;
+    border: 2px solid #007bff;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #007bff;
+    background-color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 150px;
+    text-align: center;
+}
+
+.deckSelectDropdown:hover {
+    border-color: #0056b3;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.deckSelectDropdown:focus {
+    outline: none;
+    border-color: #0056b3;
+}
+
+.deckSelectDropdown option {
+     /* Basic styling for options */
+    font-weight: 500;
+}
+
+
+/* --- Button Controls Row --- */
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Base styles for navigation buttons */
+.nav {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.nav:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Keep shadow when disabled */
+    transform: none; /* No hover effect when disabled */
+}
+
+/* Specific styles using composes */
+.prevCardBtn {
+    composes: nav; /* Inherits .nav styles */
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+.prevCardBtn svg {
+    stroke: #333;
+}
+
+.nextCardBtn {
+    composes: nav; /* Inherits .nav styles */
+    background-color: #007bff;
+}
+
+.nextCardBtn svg {
+    stroke: white;
+}
+
+
+/* --- Action Buttons --- */
+.actionBtn { /* Renamed from .action-btn */
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    padding: 0; /* Ensure no padding interferes with icon centering */
+}
+
+.actionBtn:hover:not(:disabled) { /* Add :not(:disabled) */
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.actionBtn:active:not(:disabled) { /* Add :not(:disabled) */
+    transform: scale(0.95);
+}
+
+.actionBtn:disabled { /* Add disabled state for action buttons */
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: none;
+}
+
+
+.resetButton { /* Renamed from #resetButton ID */
+    composes: actionBtn;
+    border-color: #ff4757;
+}
+
+.resetButton svg {
+    stroke: #ff4757;
+    width: 24px; /* Explicit size */
+    height: 24px;
+}
+
+.correctButton { /* Renamed from #correctButton ID */
+    composes: actionBtn;
+    border-color: #28a745;
+}
+
+.correctButton svg {
+    stroke: #28a745;
+    width: 28px; /* Explicit size */
+    height: 28px;
+}
+
+.cardCounter { /* Renamed from #cardCounter ID */
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    min-width: 60px;
+    text-align: center;
+    line-height: 50px; /* Align text vertically with action buttons */
+}

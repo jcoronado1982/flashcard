@@ -1,64 +1,55 @@
 // src/features/flashcards/IpaModal.jsx
 import React from 'react';
+import styles from './IpaModal.module.css'; // Import the CSS Module
 
-// 1. La lista de símbolos nuevos que quieres mostrar en los botones.
+// --- Data for the modal ---
 const ipaSymbols = [ 'i', 'ɪ', 'ɛ', 'æ', 'ɑ', 'ʌ', 'ɚ', 'ɔ', 'ɒ', 'u', 'ʊ', 'ɝ' ];
-
-// 2. El objeto para posicionar los botones en el CSS (ya estaba corregido).
-const symbolPositions = { 
-    'i': 'ipa-i-long',    
-    'ɪ': 'ipa-i-short', 
-    'ɛ': 'ipa-e',         
-    'æ': 'ipa-ae', 
-    'ɚ': 'ipa-schwa',     
-    'ʌ': 'ipa-uh', 
-    'ɑ': 'ipa-a-long',    
-    'ɔ': 'ipa-o-long',    
-    'ʊ': 'ipa-u-short', 
-    'u': 'ipa-u-long',    
-    'ɒ': 'ipa-o-short', 
-    'ɝ': 'ipa-er'         
+const symbolPositions = {
+    'i': 'ipa-i-long',  'ɪ': 'ipa-i-short', 'ɛ': 'ipa-e',     'æ': 'ipa-ae',
+    'ɚ': 'ipa-schwa',   'ʌ': 'ipa-uh',      'ɑ': 'ipa-a-long','ɔ': 'ipa-o-long',
+    'ʊ': 'ipa-u-short', 'u': 'ipa-u-long',  'ɒ': 'ipa-o-short','ɝ': 'ipa-er'
 };
-
-// 3. NUEVO: Un "mapa" para traducir el símbolo del botón al nombre de archivo de audio correcto.
 const symbolToFileNameMap = {
-  'i': 'i-',    // El símbolo 'i' usará el archivo 'i-.mp4'
-  'ɪ': 'ɪ',     // El símbolo 'ɪ' usará el archivo 'ɪ.mp4'
-  'ɛ': 'e',     // El símbolo 'ɛ' usará el archivo 'e.mp4'
-  'æ': 'æ',
-  'ɑ': 'ɑ-',
-  'ʌ': 'ʌ',
-  'ɚ': 'ə',     // El símbolo 'ɚ' usará el archivo 'ə.mp4'
-  'ɔ': 'ɔ-',
-  'ɒ': 'ɒ',
-  'u': 'u-',
-  'ʊ': 'ʊ',
-  'ɝ': 'ɜ-'     // El símbolo 'ɝ' usará el archivo 'ɜ-.mp4'
+  'i': 'i-', 'ɪ': 'ɪ', 'ɛ': 'e', 'æ': 'æ', 'ɑ': 'ɑ-', 'ʌ': 'ʌ', 'ɚ': 'ə',
+  'ɔ': 'ɔ-', 'ɒ': 'ɒ', 'u': 'u-', 'ʊ': 'ʊ', 'ɝ': 'ɜ-'
 };
-
+// --- End Data ---
 
 function IpaModal({ onClose }) {
+
     const speakIPA = (symbol) => {
-        // AHORA: Usa el mapa para encontrar el nombre de archivo correcto.
-        const fileName = symbolToFileNameMap[symbol]; 
-        
-        const audio = new Audio(`/audio/${fileName}.mp4`); 
-        audio.play().catch(e => console.error(`Error al reproducir /audio/${fileName}.mp4:`, e));
+        const fileName = symbolToFileNameMap[symbol];
+        if (!fileName) {
+            console.error(`No audio file name mapped for IPA symbol: ${symbol}`);
+            return;
+        }
+        // Assumes audio files are in the /public/audio/ directory
+        const audio = new Audio(`/audio/${fileName}.mp4`);
+        audio.play().catch(e => console.error(`Error playing /audio/${fileName}.mp4:`, e));
     };
 
     return (
-        <div className="modal" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <span className="close-button" onClick={onClose}>&times;</span>
-                <div id="ipa-chart">
+        // Use the CSS module class for the modal background/container
+        <div className={styles.modal} onClick={onClose}>
+            {/* Use the CSS module class for the modal content box */}
+            {/* Stop propagation prevents closing the modal when clicking inside the content */}
+            <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                {/* Use the CSS module class for the close button (as a button for semantics) */}
+                <button className={styles.closeButton} onClick={onClose}>&times;</button>
+
+                {/* Use the CSS module class for the chart background/area */}
+                <div className={styles.ipaChart}>
+                    {/* Map over the symbols to create buttons */}
                     {ipaSymbols.map(symbol => (
-                        <button 
-                            key={symbol} 
-                            id={symbolPositions[symbol]} 
-                            className="ipa-btn" 
+                        <button
+                            key={symbol}
+                            // IMPORTANT: Keep the ID! This is used by the CSS for positioning.
+                            id={symbolPositions[symbol]}
+                            // Use the CSS module class for general button styling
+                            className={styles.ipaBtn}
                             onClick={() => speakIPA(symbol)}
                         >
-                            {symbol}
+                            {symbol} {/* Display the IPA symbol on the button */}
                         </button>
                     ))}
                 </div>

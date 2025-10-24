@@ -1,0 +1,112 @@
+/* src/features/flashcards/IpaModal.module.css */
+
+.modal {
+    display: flex; /* Use flexbox to center content */
+    justify-content: center;
+    align-items: center;
+    position: fixed; /* Cover the whole screen */
+    z-index: 1000; /* Ensure it's on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Allow scroll if content is too big */
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+}
+
+.modalContent {
+    background-color: #fefefe; /* White background for the modal box */
+    padding: 15px 20px 20px 20px; /* Padding inside the modal */
+    border: 1px solid #888; /* Subtle border */
+    width: 90%; /* Responsive width */
+    max-width: 580px; /* Maximum width */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Drop shadow */
+    position: relative; /* Needed for positioning the close button */
+    animation: fadeIn 0.3s ease-out; /* Apply fade-in animation */
+    box-sizing: border-box; /* Include padding in the width calculation */
+}
+
+/* Simple fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95); /* Slight scale up */
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.closeButton {
+    color: #aaa; /* Light gray color */
+    font-size: 28px; /* Size of the 'x' */
+    font-weight: bold;
+    position: absolute; /* Position relative to modalContent */
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    line-height: 1; /* Prevent extra vertical space */
+    background: none; /* No button background */
+    border: none; /* No button border */
+    padding: 0; /* No button padding */
+}
+.closeButton:hover,
+.closeButton:focus {
+    color: #333; /* Darker color on hover/focus */
+    text-decoration: none;
+    outline: none; /* Remove focus outline */
+}
+
+
+.ipaChart {
+    position: relative; /* Container for absolutely positioned buttons */
+    width: 100%; /* Take available width */
+    max-width: 530px; /* Maximum width of the background image */
+    aspect-ratio: 530 / 370; /* Maintain the image's aspect ratio */
+    /* Background image settings - Make sure image is in /public */
+    background: url('/vowel_trapezoid.png') no-repeat center center / contain;
+    margin: 25px auto 10px auto; /* Center the chart horizontally */
+}
+
+/* Base styles for ALL IPA buttons */
+.ipaBtn {
+    position: absolute; /* CRITICAL: Allows top/left positioning via ID */
+    background: #7CFC00; /* Lime green background */
+    border: 1px solid rgba(0, 0, 0, 0.3); /* Subtle border */
+    border-radius: 8px; /* Rounded corners */
+    font-weight: bold;
+    font-size: 16px;
+    padding: 4px 8px; /* Padding inside the button */
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Small shadow */
+    transition: transform 0.2s ease, background-color 0.2s ease; /* Smooth transitions */
+    text-align: center;
+    min-width: 25px; /* Minimum width */
+    line-height: 1; /* Adjust text line height */
+    margin: 0; /* Reset margin */
+    font-family: inherit; /* Use the parent font */
+    color: #333; /* Dark text color for contrast */
+}
+
+.ipaBtn:hover {
+    background-color: #32CD32; /* Darker green on hover */
+    transform: scale(1.15); /* Slightly enlarge on hover */
+}
+
+/* --- ID Selectors for Positioning --- */
+/* These IDs are applied directly in the JSX and remain global. */
+/* They ONLY control top and left. The .ipaBtn class handles the appearance. */
+#ipa-i-long  { top: 13px; left: 40px; }
+#ipa-i-short { top: 60px; left: 130px; }
+#ipa-e       { top: 224px; left: 180px; }
+#ipa-ae      { top: 328px; left: 248px; }
+#ipa-schwa   { top: 165px; left: 300px; } /* Corresponds to 'ɚ' */
+#ipa-uh      { top: 224px; left: 354px; } /* Corresponds to 'ʌ' */
+#ipa-a-long  { top: 330px; left: 460px; } /* Corresponds to 'ɑ' */
+#ipa-o-long  { top: 164px; left: 462px; } /* Corresponds to 'ɔ' */
+#ipa-u-short { top: 60px; left: 410px; }  /* Corresponds to 'ʊ' */
+#ipa-u-long  { top: 13px; left: 462px; }  /* Corresponds to 'u' */
+#ipa-o-short { top: 330px; left: 400px; } /* Corresponds to 'ɒ' */
+#ipa-er      { top: 224px; left: 318px; } /* Corresponds to 'ɝ' */
