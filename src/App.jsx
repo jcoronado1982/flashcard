@@ -3,9 +3,21 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Flashcard from './features/flashcards/Flashcard';
 import Controls from './features/flashcards/Controls';
 import IpaModal from './features/flashcards/IpaModal';
+import ToneSelector from './features/flashcards/ToneSelector'; // <-- CAMBIO 1: Importar ToneSelector
 import './App.css'; // Asegúrate de que este archivo CSS se importa
 
 const API_URL = 'http://127.0.0.1:8000';
+
+// --- CAMBIO 2: Definir las opciones de tono ---
+const toneOptions = [
+    { label: "Casual", value: "Read this casually, like talking to a friend: " }, // Default
+    { label: "Claro", value: "Read clearly: " },
+    { label: "Presentador", value: "Read this like a news anchor: " },
+    { label: "Formal", value: "Say in a formal and informative tone: " },
+    { label: "Rápido", value: "Say quickly and urgently: " }
+];
+// --- FIN CAMBIO 2 ---
+
 
 function App() {
     // ----------------------------------------------------
@@ -18,10 +30,17 @@ function App() {
     const [isIpaModalOpen, setIsIpaModalOpen] = useState(false);
     const [appMessage, setAppMessage] = useState({ text: '', isError: false });
 
-    // --- NUEVO ESTADO ---
-    // Controla si un audio se está cargando (para bloquear controles)
+    // --- NUEVO ESTADO (Para bloqueo de botones mientras carga audio) ---
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     // --- FIN NUEVO ESTADO ---
+
+    // --- CAMBIO 3: Añadir estado y handler para el tono ---
+    const [selectedTone, setSelectedTone] = useState(toneOptions[0].value); // Inicializa con el primero
+
+    const handleToneChange = useCallback((newToneValue) => {
+        setSelectedTone(newToneValue);
+    }, []);
+    // --- FIN CAMBIO 3 ---
 
     // ----------------------------------------------------
     // ESTADOS DE TARJETA INDIVIDUAL (Deck Name = Nombre del archivo JSON sin '.json')
@@ -268,57 +287,55 @@ function App() {
     // Renderiza el componente principal
     return (
         <>
-            {/* Usa la clase 'app-container' para el centrado general */}
+            {/* --- CAMBIO 4: Renderizar ToneSelector --- */}
+            <ToneSelector
+                toneOptions={toneOptions}
+                selectedTone={selectedTone}
+                onToneChange={handleToneChange}
+            />
+            {/* --- FIN CAMBIO 4 --- */}
+
             <div className="app-container">
 
-                {/* Muestra carga si está cambiando de deck o si no hay tarjeta actual */}
                 {isLoading || !currentCard ? (
                     <div className="loading-container"><img src="/loading.gif" alt="Cargando tarjeta..." /></div>
                 ) : (
-                    // Muestra mensaje de completado si no hay tarjetas filtradas pero sí hay en masterData
                     filteredData.length === 0 && masterData.length > 0 ? (
                         <div className="all-done-message">
                             ¡Felicidades! Has completado la palabra '{currentDeckName}'. 🎉
                         </div>
                     ) : (
-                        // Renderiza la Flashcard si hay datos
                         <Flashcard
-                            // Key ayuda a React a resetear el estado del componente Flashcard al cambiar de deck o tarjeta
                             key={`${currentDeckName}-${currentCard.id}`}
                             cardData={currentCard}
                             onOpenIpaModal={() => setIsIpaModalOpen(true)}
                             setAppMessage={setAppMessage}
                             updateCardImagePath={updateCardImagePath}
-                            currentDeckName={currentDeckName} // Pasa el nombre del deck actual
-                            // --- PROP NUEVA ---
-                            setIsAudioLoading={setIsAudioLoading}
-                            // --- FIN PROP NUEVA ---
+                            currentDeckName={currentDeckName}
+                            setIsAudioLoading={setIsAudioLoading} // Prop original
+                            // --- CAMBIO 5: PASAR selectedTone COMO PROP ---
+                            selectedTone={selectedTone}
+                            // --- FIN CAMBIO 5 ---
                         />
                     )
                 )}
 
-
-                {/* Siempre muestra los controles */}
                 <Controls
                     onNext={handleNextCard}
                     onPrev={handlePrevCard}
                     onMarkLearned={handleMarkAsLearned}
                     onReset={handleReset}
                     currentIndex={currentIndex}
-                    totalCards={filteredData.length} // Usa el total filtrado para el contador
-                    deckNames={deckNames} // Lista de decks para el selector
-                    onDeckChange={handleDeckChange} // Función para cambiar de deck
-                    currentDeckName={currentDeckName} // Deck actualmente seleccionado
-                    // --- PROP NUEVA ---
-                    isAudioLoading={isAudioLoading}
-                    // --- FIN PROP NUEVA ---
+                    totalCards={filteredData.length}
+                    deckNames={deckNames}
+                    onDeckChange={handleDeckChange}
+                    currentDeckName={currentDeckName}
+                    isAudioLoading={isAudioLoading} // Prop original
                 />
             </div>
 
-            {/* Renderiza el modal si está abierto */}
             {isIpaModalOpen && <IpaModal onClose={() => setIsIpaModalOpen(false)} />}
 
-            {/* Muestra mensajes de estado/error */}
             <div id="message" style={{ color: appMessage.isError ? '#D32F2F' : '#333' }}>
                 {appMessage.text}
             </div>
