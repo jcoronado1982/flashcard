@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Ignorar carpetas de contenido generado por el backend
+pyton/card_audio/
+pyton/card_images/
