@@ -16,23 +16,33 @@ export function useImageGeneration({
     const imageRef = useRef(null);
     const imageAttempts = useRef({});
 
-    // Esta función (generateAndLoadImage) ya la tienes. La dejamos como está.
     const generateAndLoadImage = useCallback(async (defIndex = 0) => {
-        // ... (tu lógica de generación de imagen existente va aquí) ...
-        // ... (no es necesario copiarla si ya la tienes) ...
         if (!cardData || !cardData.definitions?.[defIndex]) return;
-        if (!imageAttempts.current[defIndex]) imageAttempts.current[defIndex] = 0;
+
+        if (!imageAttempts.current[defIndex]) {
+            imageAttempts.current[defIndex] = 0;
+        }
+
         if (imageAttempts.current[defIndex] >= MAX_IMAGE_ATTEMPTS) {
-            setAppMessage({ text: `Fallaron todos los intentos para imagen def ${defIndex + 1}`, isError: true });
+            setAppMessage({
+                text: `Fallaron todos los intentos para imagen def ${defIndex + 1}`,
+                isError: true
+            });
             setIsImageLoading(false);
             return;
         }
+
         imageAttempts.current[defIndex]++;
         setIsImageLoading(true);
-        setAppMessage({ text: `⏳ Cargando imagen (Def ${defIndex + 1})...`, isError: false });
+        setAppMessage({
+            text: `⏳ Cargando imagen (Def ${defIndex + 1})...`,
+            isError: false
+        });
+
         try {
             const def = cardData.definitions[defIndex];
             const prompt = `Generate a single, clear, educational illustration for the phrasal verb "${cardData.name}" meaning "${def.meaning}". Context: "${def.usage_example}". Style: Photorealistic, bright, daylight. No text or labels.`;
+
             const res = await fetch(`${API_URL}/api/generate-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -44,29 +54,46 @@ export function useImageGeneration({
                     force_generation: !def.imagePath
                 })
             });
+
             if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
             const data = await res.json();
             if (!data?.path) throw new Error("Sin ruta de imagen en la respuesta");
+
             const fullPath = `${API_URL}${data.path}?t=${Date.now()}`;
+            
             updateCardImagePath(cardData.id, data.path, defIndex);
-            if (imageRef.current) { imageRef.current.src = fullPath; }
-            setImageUrl((prev) => prev || fullPath);
+
+            if (imageRef.current) {
+                imageRef.current.src = fullPath;
+            }
+            
+            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+            // Antes decía: setImageUrl((prev) => prev || fullPath);
+            // Ahora siempre actualiza a la nueva imagen generada.
+            setImageUrl(fullPath); 
+            // ---------------------------------
+
             setIsImageLoading(false);
-            setAppMessage({ text: `¡Imagen (Def ${defIndex + 1}) lista!`, isError: false });
+            setAppMessage({
+                text: `¡Imagen (Def ${defIndex + 1}) lista!`,
+                isError: false
+            });
+
         } catch (err) {
             console.warn(`Error imagen def ${defIndex}:`, err);
             if (imageAttempts.current[defIndex] < MAX_IMAGE_ATTEMPTS) {
                 setTimeout(() => generateAndLoadImage(defIndex), IMAGE_RETRY_DELAY);
             } else {
-                setAppMessage({ text: `Error final al cargar imagen: ${err.message}`, isError: true });
+                setAppMessage({
+                    text: `Error final al cargar imagen: ${err.message}`,
+                    isError: true
+                });
                 setIsImageLoading(false);
             }
         }
     }, [cardData, currentDeckName, setAppMessage, updateCardImagePath]);
 
     
-    // --- 1. AÑADE ESTA NUEVA FUNCIÓN ---
-    // Esta función carga una imagen existente o la genera si es necesario
     const displayImageForIndex = useCallback((defIndex) => {
         if (!cardData || !cardData.definitions?.[defIndex]) return;
 
@@ -85,10 +112,9 @@ export function useImageGeneration({
             img.src = fullPath;
             img.onload = () => {
                 if (imageRef.current) imageRef.current.src = fullPath;
-                setImageUrl(fullPath);
+                setImageUrl(fullPath); // Esta línea ya estaba correcta
                 setIsImageLoading(false);
             };
-            // Si falla al cargar, la regenera
             img.onerror = () => {
                 console.warn(`No se pudo cargar la imagen existente en ${fullPath}. Generando una nueva.`);
                 generateAndLoadImage(defIndex);
@@ -97,10 +123,10 @@ export function useImageGeneration({
             // Si no existe, usa la lógica de generación
             generateAndLoadImage(defIndex);
         }
-    }, [cardData, generateAndLoadImage, imageUrl]); // Depende de la data, la función de generar, y la URL actual
+    }, [cardData, generateAndLoadImage, imageUrl]);
 
 
-    // Este useEffect (carga inicial) ya lo tienes. Lo dejamos como está.
+    // useEffect de carga inicial (sin cambios)
     useEffect(() => {
         if (!cardData) return;
         setIsImageLoading(true);
@@ -123,7 +149,5 @@ export function useImageGeneration({
     }, [cardData, generateAndLoadImage]);
 
 
-    // --- 2. MODIFICA EL RETURN ---
-    // Añade 'displayImageForIndex' a lo que exportas
     return { isImageLoading, imageUrl, imageRef, displayImageForIndex };
 }
