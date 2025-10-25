@@ -16,6 +16,7 @@ export function useImageGeneration({
     const imageRef = useRef(null);
     const imageAttempts = useRef({});
 
+    // --- generateAndLoadImage (Sin cambios) ---
     const generateAndLoadImage = useCallback(async (defIndex = 0) => {
         if (!cardData || !cardData.definitions?.[defIndex]) return;
 
@@ -42,7 +43,9 @@ export function useImageGeneration({
         try {
             const def = cardData.definitions[defIndex];
             const prompt = `Generate a single, clear, educational illustration for the phrasal verb "${cardData.name}" meaning "${def.meaning}". Context: "${def.usage_example}". Style: Photorealistic, bright, daylight. No text or labels.`;
-
+            
+            const forceFlag = cardData.force_generation;
+            
             const res = await fetch(`${API_URL}/api/generate-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,11 +54,17 @@ export function useImageGeneration({
                     def_index: defIndex,
                     prompt,
                     deck: currentDeckName,
-                    force_generation: !def.imagePath
+                    force_generation: forceFlag
                 })
             });
+            
+            if (!res.ok) {
+                if (res.status === 404) {
+                    throw new Error("La generación de imagen está deshabilitada para esta tarjeta (force_generation=false).");
+                }
+                throw new Error(`Error HTTP ${res.status}`);
+            }
 
-            if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
             const data = await res.json();
             if (!data?.path) throw new Error("Sin ruta de imagen en la respuesta");
 
@@ -67,11 +76,7 @@ export function useImageGeneration({
                 imageRef.current.src = fullPath;
             }
             
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-            // Antes decía: setImageUrl((prev) => prev || fullPath);
-            // Ahora siempre actualiza a la nueva imagen generada.
             setImageUrl(fullPath); 
-            // ---------------------------------
 
             setIsImageLoading(false);
             setAppMessage({
@@ -81,38 +86,44 @@ export function useImageGeneration({
 
         } catch (err) {
             console.warn(`Error imagen def ${defIndex}:`, err);
-            if (imageAttempts.current[defIndex] < MAX_IMAGE_ATTEMPTS) {
-                setTimeout(() => generateAndLoadImage(defIndex), IMAGE_RETRY_DELAY);
-            } else {
+            
+            if (err.message.includes("deshabilitada") || imageAttempts.current[defIndex] >= MAX_IMAGE_ATTEMPTS) {
                 setAppMessage({
-                    text: `Error final al cargar imagen: ${err.message}`,
+                    text: err.message.includes("deshabilitada") ? err.message : `Error final al cargar imagen: ${err.message}`,
                     isError: true
                 });
-                setIsImageLoading(false);
+                setIsImageLoading(false); // <-- Importante: detener el spinner
+            } else {
+                setTimeout(() => generateAndLoadImage(defIndex), IMAGE_RETRY_DELAY);
             }
         }
     }, [cardData, currentDeckName, setAppMessage, updateCardImagePath]);
 
     
+    // --- ¡AQUÍ ESTÁ LA MODIFICACIÓN! ---
     const displayImageForIndex = useCallback((defIndex) => {
         if (!cardData || !cardData.definitions?.[defIndex]) return;
 
+        // 1. Resetear la imagen actual y mostrar el spinner
+        //    inmediatamente cuando se selecciona un nuevo ejemplo.
+        setImageUrl(null);
+        setIsImageLoading(true);
+
         const definition = cardData.definitions[defIndex];
+        
+        // 2. Si la imagen ya está mostrada (basado en la URL), no hagas nada.
+        //    Esta comprobación va *después* de resetear la UI.
+        //    (Quitamos la comprobación de 'imageUrl' de aquí que estaba antes)
 
-        // Evitar recargar si la imagen ya está mostrada
-        if (imageUrl?.startsWith(`${API_URL}${definition.imagePath}`)) {
-            return;
-        }
-
+        // 3. Continuar con la lógica de carga
         if (definition.imagePath) {
-            // Si la imagen existe, solo cárgala
-            setIsImageLoading(true);
+            // Si la imagen existe, cárgala
             const fullPath = `${API_URL}${definition.imagePath}?t=${Date.now()}`;
             const img = new Image();
             img.src = fullPath;
             img.onload = () => {
                 if (imageRef.current) imageRef.current.src = fullPath;
-                setImageUrl(fullPath); // Esta línea ya estaba correcta
+                setImageUrl(fullPath);
                 setIsImageLoading(false);
             };
             img.onerror = () => {
@@ -120,13 +131,14 @@ export function useImageGeneration({
                 generateAndLoadImage(defIndex);
             };
         } else {
-            // Si no existe, usa la lógica de generación
+            // Si no existe, intenta generarla (respetando force_generation)
             generateAndLoadImage(defIndex);
         }
-    }, [cardData, generateAndLoadImage, imageUrl]);
+    }, [cardData, generateAndLoadImage]); // <-- Se quita 'imageUrl' de las dependencias
+    // --- FIN DE LA MODIFICACIÓN ---
 
 
-    // useEffect de carga inicial (sin cambios)
+    // useEffect de carga inicial (Sin cambios)
     useEffect(() => {
         if (!cardData) return;
         setIsImageLoading(true);

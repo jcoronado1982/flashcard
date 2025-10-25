@@ -2,8 +2,8 @@
 import React from 'react';
 import styles from './Flashcard.module.css';
 import HighlightedText from './HighlightedText';
+import noImage from '../../assets/noImage.png'; // <-- 1. IMPORTAR LA IMAGEN
 
-// --- 1. RECIBIR LA NUEVA PROP ---
 function CardFront({
     cardData,
     onOpenIpaModal,
@@ -15,25 +15,24 @@ function CardFront({
     isImageLoading,
     imageUrl,
     imageRef,
-    displayImageForIndex // <-- RECIBIR LA PROP AQUÍ
+    displayImageForIndex
 }) {
     return (
         <div className={styles.cardFront}>
-            
-            {/* --- 2. MODIFICAR ESTE BOTÓN --- */}
+            {/* ... (Botón de sonido, h2, phoneticContainer, allExamplesContainer - sin cambios) ... */}
+
             <button
                 className={styles.soundButton}
                 onClick={(e) => {
                     e.stopPropagation();
                     playAudio(cardData.name);
-                    displayImageForIndex(0); // <-- Muestra la imagen de la primera definición
+                    displayImageForIndex(0); 
                 }}
             >
                 🔊
             </button>
 
             <h2 className={styles.name}>
-                {/* ... (sin cambios) ... */}
                 <HighlightedText 
                     text={cardData.name}
                     activeAudioText={activeAudioText}
@@ -42,7 +41,6 @@ function CardFront({
             </h2>
 
             <div className={styles.phoneticContainer}>
-                {/* ... (sin cambios) ... */}
                 <p className={styles.phonetic}>{cardData.phonetic}</p>
                 <button
                     className={styles.ipaChartBtn}
@@ -57,20 +55,17 @@ function CardFront({
 
             <div className={styles.allExamplesContainer}>
                 <ul>
-                    {cardData.definitions?.map((def, di) => ( // 'di' es el índice de la definición
+                    {cardData.definitions?.map((def, di) => (
                         <li key={di}>
-
-                            {/* --- 3. MODIFICAR ESTE BOTÓN --- */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     playAudio(def.usage_example);
-                                    displayImageForIndex(di); // <-- Muestra la imagen para este índice (di)
+                                    displayImageForIndex(di);
                                 }}
                             >
                                 🔊
                             </button>
-
                             <div
                                 className={blurredState[di] ? styles.blurredText : ''}
                                 onClick={(e) => {
@@ -78,7 +73,6 @@ function CardFront({
                                     toggleBlur(di);
                                 }}
                             >
-                                {/* ... (sin cambios) ... */}
                                 <HighlightedText 
                                     text={def.usage_example}
                                     activeAudioText={activeAudioText}
@@ -95,23 +89,34 @@ function CardFront({
                 </ul>
             </div>
 
+            {/* --- ¡AQUÍ ESTÁ LA MODIFICACIÓN! --- */}
             <div className={styles.imagePlaceholder}>
-                {/* ... (sin cambios) ... */}
                 {isImageLoading ? (
+                    // Caso 1: Estamos cargando activamente (mostramos spinner)
                     <img
-                        src="/loading.gif"
-                        alt="Cargando..."
+                        src="/loading.gif" // Asegúrate que loading.gif esté en /public
+                        alt="Loading..."
                         style={{ width: '100px', height: '100px' }}
                     />
-                ) : (
+                ) : imageUrl ? (
+                    // Caso 2: No estamos cargando Y tenemos una URL (mostramos imagen real)
                     <img
                         ref={imageRef}
                         className={`${styles.image} ${styles.imageVisible}`}
                         src={imageUrl}
                         alt={cardData.name || 'Flashcard image'}
                     />
+                ) : (
+                    // Caso 3: No estamos cargando Y NO tenemos URL (mostramos imagen placeholder)
+                    <img 
+                        src={noImage} // <-- 2. USAR LA IMAGEN IMPORTADA
+                        alt="Image not available" 
+                        className={styles.noImagePlaceholderImg} // <-- 3. Usar una clase específica si necesitas estilos
+                    />
                 )}
             </div>
+            {/* --- FIN DE LA MODIFICACIÓN --- */}
+
         </div>
     );
 }
