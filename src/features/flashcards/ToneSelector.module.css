@@ -1,0 +1,51 @@
+/* src/features/flashcards/ToneSelector.module.css */
+.toneSelectorContainer {
+    position: absolute; /* Posiciona respecto al ancestro posicionado más cercano o al body */
+    top: 20px;          /* Espacio desde arriba */
+    right: 20px;         /* Espacio desde la derecha */
+    z-index: 50;         /* Asegura que esté por encima de otros elementos */
+    display: flex;
+    align-items: center;
+    gap: 8px;            /* Espacio entre etiqueta y select */
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo ligeramente opaco */
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Sombra suave */
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; /* Asegurar fuente consistente */
+}
+
+.toneSelectorLabel {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap; /* Evita que la etiqueta se rompa en dos líneas */
+}
+
+.toneSelectDropdown {
+    padding: 5px 30px 5px 10px; /* Más espacio a la derecha para la flecha */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.9em;
+    color: #333;
+    background-color: #fff;
+    cursor: pointer;
+    /* Estilo de flecha SVG */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    -webkit-appearance: none; /* Quita estilos por defecto en WebKit */
+    -moz-appearance: none;    /* Quita estilos por defecto en Firefox */
+    appearance: none;          /* Quita estilos por defecto estándar */
+    min-width: 100px; /* Ancho mínimo para que quepa el texto */
+}
+
+.toneSelectDropdown:focus {
+    outline: none;
+    border-color: #007bff; /* Resalta borde al enfocar */
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Sombra de foco sutil */
+}
+
+.toneSelectDropdown option {
+     /* Estilos básicos para las opciones si es necesario */
+    font-weight: normal;
+}
