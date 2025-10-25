@@ -1,62 +1,42 @@
-// src/App.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import Flashcard from './features/flashcards/Flashcard';
 import Controls from './features/flashcards/Controls';
 import IpaModal from './features/flashcards/IpaModal';
-import ToneSelector from './features/flashcards/ToneSelector'; // <-- CAMBIO 1: Importar ToneSelector
-import './App.css'; // Asegúrate de que este archivo CSS se importa
+import ToneSelector from './features/flashcards/ToneSelector'; 
+import './App.css'; 
 
 const API_URL = 'http://127.0.0.1:8000';
 
-// --- CAMBIO 2: Definir las opciones de tono ---
 const toneOptions = [
-    { label: "Casual", value: "Read this casually, like talking to a friend: " }, // Default
+    { label: "Casual", value: "Read this casually, like talking to a friend: " },
     { label: "Claro", value: "Read clearly: " },
     { label: "Presentador", value: "Read this like a news anchor: " },
     { label: "Formal", value: "Say in a formal and informative tone: " },
     { label: "Rápido", value: "Say quickly and urgently: " }
 ];
-// --- FIN CAMBIO 2 ---
-
 
 function App() {
-    // ----------------------------------------------------
-    // ESTADOS GENERALES Y DE DATOS
-    // ----------------------------------------------------
     const [masterData, setMasterData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isLoading, setIsLoading] = useState(true); // Indica si la app está cargando datos INICIALES o cambiando de deck
+    const [isLoading, setIsLoading] = useState(true);
     const [isIpaModalOpen, setIsIpaModalOpen] = useState(false);
     const [appMessage, setAppMessage] = useState({ text: '', isError: false });
-
-    // --- NUEVO ESTADO (Para bloqueo de botones mientras carga audio) ---
     const [isAudioLoading, setIsAudioLoading] = useState(false);
-    // --- FIN NUEVO ESTADO ---
-
-    // --- CAMBIO 3: Añadir estado y handler para el tono ---
-    const [selectedTone, setSelectedTone] = useState(toneOptions[0].value); // Inicializa con el primero
+    const [selectedTone, setSelectedTone] = useState(toneOptions[0].value);
+    const [deckNames, setDeckNames] = useState([]);
+    const [currentDeckName, setCurrentDeckName] = useState(null);
 
     const handleToneChange = useCallback((newToneValue) => {
         setSelectedTone(newToneValue);
     }, []);
-    // --- FIN CAMBIO 3 ---
 
-    // ----------------------------------------------------
-    // ESTADOS DE TARJETA INDIVIDUAL (Deck Name = Nombre del archivo JSON sin '.json')
-    // ----------------------------------------------------
-    const [deckNames, setDeckNames] = useState([]);
-    const [currentDeckName, setCurrentDeckName] = useState(null);
-
-    // ----------------------------------------------------
-    // LÓGICA DE CARGA DE DATOS (Centralizada)
-    // ----------------------------------------------------
     const fetchFlashcards = useCallback(async (deck) => {
         if (!deck) return;
 
         setAppMessage({ text: `Cargando palabra: ${deck}...`, isError: false });
-        setIsLoading(true); // Activa el estado de carga al cambiar de deck
-        setCurrentIndex(0); // Reinicia el índice al cargar nuevo deck
+        setIsLoading(true);
+        setCurrentIndex(0);
 
         try {
             const response = await fetch(`${API_URL}/api/flashcards-data?deck=${deck}`);
@@ -64,40 +44,44 @@ function App() {
 
             let data = await response.json();
             if (!Array.isArray(data)) {
-                data = [data]; // Asegura que sea un array
+                data = [data];
             }
 
-            // Asigna un ID único basado en el índice original
-            const dataWithIds = data.map((card, index) => ({ ...card, id: index }));
+            const dataWithIds = data.map((card, index) => ({
+                ...card,
+                id: index,
+                // Normalización de campos para el frontend
+                definitions: (Array.isArray(card.definitions) ? card.definitions : []).map(def => ({...def, imagePath: def.imagePath || null })),
+                phonetic: card.phonetic || card.ipa_us || 'N/A',
+                learned: card.learned || false,
+                force_generation: card.force_generation !== undefined ? card.force_generation : false
+            }));
 
-            setMasterData(dataWithIds); // Guarda todos los datos originales
-            const unlearnedCards = dataWithIds.filter(card => !card.learned); // Filtra los no aprendidos
-            setFilteredData(unlearnedCards); // Actualiza los datos filtrados para mostrar
+
+            setMasterData(dataWithIds);
+            const unlearnedCards = dataWithIds.filter(card => !card.learned);
+            setFilteredData(unlearnedCards);
 
             if (unlearnedCards.length > 0) {
                 setAppMessage({ text: `Palabra '${deck}' lista.`, isError: false });
-            } else if (dataWithIds.length > 0) { // Si hay datos pero todos están aprendidos
+            } else if (dataWithIds.length > 0) { 
                 setAppMessage({ text: `¡Has completado '${deck}'!`, isError: false });
-            } else { // Si el archivo JSON estaba vacío
+            } else { 
                 setAppMessage({ text: `La palabra '${deck}' no tiene tarjetas.`, isError: true });
             }
 
         } catch (error) {
             console.error("Error fatal al cargar flashcards:", error);
             setAppMessage({ text: `Error al cargar ${deck}: ${error.message}`, isError: true });
-            setMasterData([]); // Limpia datos en caso de error
+            setMasterData([]);
             setFilteredData([]);
         } finally {
-            setIsLoading(false); // Desactiva el estado de carga
+            setIsLoading(false);
         }
-    }, []); // No necesita dependencias aquí
+    }, []); 
 
-    // ----------------------------------------------------
-    // EFECTO 1: Cargar la lista de nombres de decks (al inicio)
-    // ----------------------------------------------------
     useEffect(() => {
         const fetchDeckNames = async () => {
-            // No establecemos isLoading aquí, se maneja en fetchFlashcards
             setAppMessage({ text: 'Buscando palabras disponibles...', isError: false });
 
             try {
@@ -110,82 +94,64 @@ function App() {
                     throw new Error('La respuesta de la API no es válida.');
                 }
 
-                // Obtiene nombres sin .json
                 const rawDeckNames = result.files.map(name => name.replace('.json', ''));
                 setDeckNames(rawDeckNames);
 
-                // Establece el primer deck como activo si hay alguno
                 if (rawDeckNames.length > 0) {
-                    // No llamamos a fetchFlashcards aquí, el Efecto 2 se encargará
                     setCurrentDeckName(rawDeckNames[0]);
                 } else {
                     setAppMessage({ text: 'No se encontraron archivos de palabras.', isError: true });
-                    setIsLoading(false); // No hay nada que cargar
+                    setIsLoading(false); 
                 }
 
             } catch (error) {
                 console.error("Error al cargar nombres de decks:", error);
                 setAppMessage({ text: `Error al cargar lista: ${error.message}`, isError: true });
-                setIsLoading(false); // Detiene la carga si falla
+                setIsLoading(false); 
             }
         };
 
         fetchDeckNames();
-        // Se ejecuta solo una vez al montar el componente
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // ----------------------------------------------------
-    // EFECTO 2: Recarga las flashcards cuando cambia el deck seleccionado
-    // ----------------------------------------------------
     useEffect(() => {
-        // Solo llama a fetchFlashcards si currentDeckName tiene un valor
         if (currentDeckName) {
             fetchFlashcards(currentDeckName);
         }
-        // Depende de currentDeckName y la función fetchFlashcards
     }, [currentDeckName, fetchFlashcards]);
 
-    // ----------------------------------------------------
-    // MANEJADORES DE NAVEGACIÓN Y ACCIÓN
-    // ----------------------------------------------------
-
-    // Cambia el deck activo
     const handleDeckChange = useCallback((newDeck) => {
         if (newDeck !== currentDeckName) {
-            setCurrentDeckName(newDeck); // Esto dispara el Efecto 2
+            setCurrentDeckName(newDeck); 
         }
     }, [currentDeckName]);
 
-    // Va a la siguiente tarjeta
     const handleNextCard = useCallback(() => {
         if (filteredData.length > 0) {
             setCurrentIndex(prev => (prev + 1) % filteredData.length);
         }
     }, [filteredData.length]);
 
-    // Va a la tarjeta anterior
     const handlePrevCard = useCallback(() => {
         if (filteredData.length > 0) {
             setCurrentIndex(prev => (prev - 1 + filteredData.length) % filteredData.length);
         }
     }, [filteredData.length]);
 
-    // Marca la tarjeta actual como aprendida
     const handleMarkAsLearned = useCallback(async () => {
-        if (filteredData.length === 0 || !currentDeckName) return; // No hacer nada si no hay tarjetas o deck
+        if (filteredData.length === 0 || !currentDeckName) return; 
 
         const cardToMark = filteredData[currentIndex];
-        if (!cardToMark) return; // Seguridad extra
+        if (!cardToMark) return; 
 
         try {
-            // Llama a la API para actualizar el estado en el backend
             const response = await fetch(`${API_URL}/api/update-status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     deck: currentDeckName,
-                    index: cardToMark.id, // Usa el ID original
+                    index: cardToMark.id, 
                     learned: true
                 })
             });
@@ -195,27 +161,21 @@ function App() {
                 throw new Error(errorData.detail || 'Error al actualizar estado en API.');
             }
 
-            // Actualiza el estado local (masterData) para reflejar el cambio
             const updatedMasterData = masterData.map(card =>
                 card.id === cardToMark.id ? { ...card, learned: true } : card
             );
             setMasterData(updatedMasterData);
 
-            // Vuelve a filtrar los datos para quitar la tarjeta aprendida
             const newFilteredData = updatedMasterData.filter(card => !card.learned);
             setFilteredData(newFilteredData);
 
-            // Ajusta el índice actual si es necesario
             if (newFilteredData.length === 0) {
-                // Si era la última tarjeta
-                setCurrentIndex(0); // Reinicia índice
+                setCurrentIndex(0); 
                 setAppMessage({ text: `¡Palabra '${currentDeckName}' completada! 🎉`, isError: false });
             } else if (currentIndex >= newFilteredData.length) {
-                // Si se marcó la última de la lista filtrada, ajusta al nuevo último índice
                 setCurrentIndex(newFilteredData.length - 1);
                 setAppMessage({ text: `Tarjeta '${cardToMark.name}' marcada.`, isError: false });
             } else {
-                // Si no era la última, el índice actual ahora muestra la siguiente tarjeta automáticamente
                 setAppMessage({ text: `Tarjeta '${cardToMark.name}' marcada.`, isError: false });
             }
 
@@ -223,17 +183,14 @@ function App() {
             console.error("Error al marcar como aprendida:", error);
             setAppMessage({ text: `Error al guardar: ${error.message}`, isError: true });
         }
-        // Depende de las variables usadas dentro
     }, [currentIndex, filteredData, masterData, currentDeckName]);
 
-    // Resetea el progreso del deck actual
     const handleReset = useCallback(async () => {
-        if (!currentDeckName) return; // No resetear si no hay deck
+        if (!currentDeckName) return; 
 
         if (window.confirm(`¿Estás seguro de que quieres resetear el progreso de '${currentDeckName}'?`)) {
             try {
                 setAppMessage({ text: 'Reseteando...', isError: false });
-                // Llama a la API para resetear en el backend
                 const response = await fetch(`${API_URL}/api/reset-all`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -245,14 +202,7 @@ function App() {
                     throw new Error(errorData.detail || 'Error al resetear en API.');
                 }
 
-                // Si la API tuvo éxito, actualiza el estado local inmediatamente
-                const resetMasterData = masterData.map(card => ({
-                    ...card,
-                    learned: false,
-                }));
-                setMasterData(resetMasterData);
-                setFilteredData(resetMasterData); // Muestra todas las tarjetas de nuevo
-                setCurrentIndex(0); // Vuelve a la primera
+                fetchFlashcards(currentDeckName); 
                 setAppMessage({ text: `Progreso de '${currentDeckName}' reseteado.`, isError: false });
 
             } catch (error) {
@@ -260,43 +210,73 @@ function App() {
                 setAppMessage({ text: `Error al resetear: ${error.message}`, isError: true });
             }
         }
-        // Depende solo de currentDeckName y masterData para resetear el estado local
-    }, [currentDeckName, masterData]);
+    }, [currentDeckName, fetchFlashcards]);
 
-    // Actualiza la ruta de la imagen en el estado local (llamado desde Flashcard)
-    const updateCardImagePath = useCallback((cardId, newPath) => {
-        const updateData = (data) => data.map(card =>
-            card.id === cardId ? { ...card, imagePath: newPath } : card
+    // --- CORRECCIÓN FINAL DE updateCardImagePath ---
+    const updateCardImagePath = useCallback((cardId, newPath, defIndex) => { // <-- Recibe defIndex
+        console.log(`App: Actualizando imagePath para cardId=${cardId}, defIndex=${defIndex}, newPath=${newPath}`); 
+        setMasterData(prevMasterData =>
+            prevMasterData.map(card => {
+                if (card.id === cardId) {
+                    const currentDefinitions = Array.isArray(card.definitions) ? card.definitions : [];
+                    if (defIndex < 0 || defIndex >= currentDefinitions.length) {
+                        console.error(`App: Índice de definición ${defIndex} fuera de rango para cardId=${cardId}.`);
+                        return card; 
+                    }
+                    const updatedDefinitions = currentDefinitions.map((def, i) => {
+                        if (i === defIndex) {
+                            return { ...def, imagePath: newPath }; // Actualiza definición correcta
+                        }
+                        return def;
+                    });
+                    return { ...card, definitions: updatedDefinitions }; 
+                }
+                return card; 
+            })
         );
-        setMasterData(prev => updateData(prev));
-        setFilteredData(prev => updateData(prev));
-    }, []); // No tiene dependencias externas
 
-    // Obtiene la tarjeta actual basada en el índice y los datos filtrados
+        // Actualiza también filteredData
+        setFilteredData(prevFilteredData =>
+            prevFilteredData.map(card => {
+                if (card.id === cardId) {
+                    const currentDefinitions = Array.isArray(card.definitions) ? card.definitions : [];
+                    if (defIndex < 0 || defIndex >= currentDefinitions.length) {
+                        return card;
+                    }
+                    const updatedDefinitions = currentDefinitions.map((def, i) => {
+                        if (i === defIndex) {
+                            return { ...def, imagePath: newPath };
+                        }
+                        return def;
+                    });
+                    return { ...card, definitions: updatedDefinitions };
+                }
+                return card;
+            })
+        );
+    }, []); // Dependencias vacías, ¡Correcto!
+    // --- FIN CORRECCIÓN FINAL ---
+
+    
     const currentCard = filteredData.length > 0 ? filteredData[currentIndex] : null;
 
     // ----------------------------------------------------
     // RENDERIZADO
     // ----------------------------------------------------
 
-    // Estado inicial de carga antes de seleccionar el primer deck
     if (isLoading && !currentDeckName) {
         return <div className="loading-container"><img src="/loading.gif" alt="Cargando..." /></div>;
     }
 
-    // Renderiza el componente principal
     return (
         <>
-            {/* --- CAMBIO 4: Renderizar ToneSelector --- */}
             <ToneSelector
                 toneOptions={toneOptions}
                 selectedTone={selectedTone}
                 onToneChange={handleToneChange}
             />
-            {/* --- FIN CAMBIO 4 --- */}
 
             <div className="app-container">
-
                 {isLoading || !currentCard ? (
                     <div className="loading-container"><img src="/loading.gif" alt="Cargando tarjeta..." /></div>
                 ) : (
@@ -312,10 +292,8 @@ function App() {
                             setAppMessage={setAppMessage}
                             updateCardImagePath={updateCardImagePath}
                             currentDeckName={currentDeckName}
-                            setIsAudioLoading={setIsAudioLoading} // Prop original
-                            // --- CAMBIO 5: PASAR selectedTone COMO PROP ---
+                            setIsAudioLoading={setIsAudioLoading}
                             selectedTone={selectedTone}
-                            // --- FIN CAMBIO 5 ---
                         />
                     )
                 )}
@@ -330,7 +308,7 @@ function App() {
                     deckNames={deckNames}
                     onDeckChange={handleDeckChange}
                     currentDeckName={currentDeckName}
-                    isAudioLoading={isAudioLoading} // Prop original
+                    isAudioLoading={isAudioLoading}
                 />
             </div>
 
