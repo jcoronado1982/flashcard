@@ -1,9 +1,9 @@
 // src/features/flashcards/CardFront.jsx
 import React from 'react';
-import styles from './Flashcard.module.css'; // Reutilizamos los mismos estilos
-import HighlightedText from './HighlightedText'; // Importamos el componente de texto
+import styles from './Flashcard.module.css';
+import HighlightedText from './HighlightedText';
 
-// Recibe todas las props que necesita para renderizar la cara frontal
+// --- 1. RECIBIR LA NUEVA PROP ---
 function CardFront({
     cardData,
     onOpenIpaModal,
@@ -14,21 +14,26 @@ function CardFront({
     toggleBlur,
     isImageLoading,
     imageUrl,
-    imageRef
+    imageRef,
+    displayImageForIndex // <-- RECIBIR LA PROP AQUÍ
 }) {
     return (
         <div className={styles.cardFront}>
+            
+            {/* --- 2. MODIFICAR ESTE BOTÓN --- */}
             <button
                 className={styles.soundButton}
                 onClick={(e) => {
-                    e.stopPropagation(); // Evitar que la tarjeta se voltee
+                    e.stopPropagation();
                     playAudio(cardData.name);
+                    displayImageForIndex(0); // <-- Muestra la imagen de la primera definición
                 }}
             >
                 🔊
             </button>
 
             <h2 className={styles.name}>
+                {/* ... (sin cambios) ... */}
                 <HighlightedText 
                     text={cardData.name}
                     activeAudioText={activeAudioText}
@@ -37,11 +42,12 @@ function CardFront({
             </h2>
 
             <div className={styles.phoneticContainer}>
+                {/* ... (sin cambios) ... */}
                 <p className={styles.phonetic}>{cardData.phonetic}</p>
                 <button
                     className={styles.ipaChartBtn}
                     onClick={(e) => {
-                        e.stopPropagation(); // Evitar que la tarjeta se voltee
+                        e.stopPropagation();
                         onOpenIpaModal();
                     }}
                 >
@@ -51,23 +57,28 @@ function CardFront({
 
             <div className={styles.allExamplesContainer}>
                 <ul>
-                    {cardData.definitions?.map((def, di) => (
+                    {cardData.definitions?.map((def, di) => ( // 'di' es el índice de la definición
                         <li key={di}>
+
+                            {/* --- 3. MODIFICAR ESTE BOTÓN --- */}
                             <button
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Evitar que la tarjeta se voltee
+                                    e.stopPropagation();
                                     playAudio(def.usage_example);
+                                    displayImageForIndex(di); // <-- Muestra la imagen para este índice (di)
                                 }}
                             >
                                 🔊
                             </button>
+
                             <div
                                 className={blurredState[di] ? styles.blurredText : ''}
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Evitar que la tarjeta se voltee
+                                    e.stopPropagation();
                                     toggleBlur(di);
                                 }}
                             >
+                                {/* ... (sin cambios) ... */}
                                 <HighlightedText 
                                     text={def.usage_example}
                                     activeAudioText={activeAudioText}
@@ -85,6 +96,7 @@ function CardFront({
             </div>
 
             <div className={styles.imagePlaceholder}>
+                {/* ... (sin cambios) ... */}
                 {isImageLoading ? (
                     <img
                         src="/loading.gif"
@@ -93,9 +105,9 @@ function CardFront({
                     />
                 ) : (
                     <img
-                        ref={imageRef} // Asignar la ref del hook
+                        ref={imageRef}
                         className={`${styles.image} ${styles.imageVisible}`}
-                        src={imageUrl} // Usar la URL del hook
+                        src={imageUrl}
                         alt={cardData.name || 'Flashcard image'}
                     />
                 )}

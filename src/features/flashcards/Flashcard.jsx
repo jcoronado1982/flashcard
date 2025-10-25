@@ -1,69 +1,52 @@
 // src/features/flashcards/Flashcard.jsx
 import React, { useState, useEffect } from 'react';
 import styles from './Flashcard.module.css';
-
-// --- CORRECCIÓN FINAL BASADA EN LOS ERRORES ---
-// El error dice que no encuentra 'useAudioPlayback.js', así que debe ser .jsx
-import { useAudioPlayback } from './useAudioPlayback.jsx'; 
-// El error anterior dijo que no encontraba 'useImageGeneration.jsx', así que debe ser .js
+import { useAudioPlayback } from './useAudioPlayback.jsx';
 import { useImageGeneration } from './useImageGeneration.js';
-// Los componentes son .jsx (esto es correcto)
 import CardFront from './CardFront.jsx';
 import CardBack from './CardBack.jsx';
-// ---------------------------------------------
 
 function Flashcard({
-    cardData,
-    onOpenIpaModal,
-    setAppMessage,
-    updateCardImagePath,
-    currentDeckName,
-    setIsAudioLoading,
-    selectedTone
+    // ... (todas las props existentes)
+    cardData, onOpenIpaModal, setAppMessage, updateCardImagePath, 
+    currentDeckName, setIsAudioLoading, selectedTone
 }) {
-    // --- ESTADOS LOCALES ---
+    
     const [isFlipped, setIsFlipped] = useState(false);
     const [blurredState, setBlurredState] = useState({});
 
-    // --- HOOK DE AUDIO ---
+    // Hook de Audio (sin cambios)
     const { 
         playAudio, 
         activeAudioText, 
         highlightedWordIndex 
     } = useAudioPlayback({
-        setAppMessage,
-        setIsAudioLoading,
-        currentDeckName,
-        selectedTone,
-        verbName: cardData?.name
+        // ...props
+        setAppMessage, setIsAudioLoading, currentDeckName, selectedTone, verbName: cardData?.name
     });
 
-    // --- HOOK DE IMAGEN ---
+    // --- 1. MODIFICAR ESTA LÍNEA ---
+    // Obtenemos la nueva función del hook de imagen
     const { 
         isImageLoading, 
         imageUrl, 
-        imageRef 
+        imageRef,
+        displayImageForIndex // <-- OBTENER LA NUEVA FUNCIÓN
     } = useImageGeneration({
-        cardData,
-        currentDeckName,
-        setAppMessage,
-        updateCardImagePath
+        // ...props
+        cardData, currentDeckName, setAppMessage, updateCardImagePath
     });
 
-    // Efecto para resetear estados locales cuando la tarjeta cambia
+    // useEffect (sin cambios)
     useEffect(() => {
         if (!cardData) return;
         setIsFlipped(false);
         setBlurredState(
-            cardData.definitions?.reduce(
-                (acc, _, i) => ({ ...acc, [i]: true }),
-                {}
-            ) || {}
+            cardData.definitions?.reduce((acc, _, i) => ({ ...acc, [i]: true }), {}) || {}
         );
         setAppMessage({ text: '', isError: false });
     }, [cardData, setAppMessage]);
 
-    // Handler para el texto borroso (se pasa a CardFront)
     const toggleBlur = (index) => {
         setBlurredState((prev) => ({ ...prev, [index]: !prev[index] }));
     };
@@ -72,14 +55,13 @@ function Flashcard({
         return <div className={styles.flashcardContainer}>Cargando datos...</div>;
     }
 
-    // --- RENDER FINAL ---
     return (
         <div className={styles.flashcardContainer}>
             <div
                 className={`${styles.card} ${isFlipped ? styles.flipped : ''}`}
-                onClick={() => setIsFlipped((p) => !p)} // Controla el volteo
+                onClick={() => setIsFlipped((p) => !p)}
             >
-                {/* ==================== CARD FRONT ==================== */}
+                {/* --- 2. MODIFICAR ESTA SECCIÓN --- */}
                 <CardFront
                     cardData={cardData}
                     onOpenIpaModal={onOpenIpaModal}
@@ -91,9 +73,9 @@ function Flashcard({
                     isImageLoading={isImageLoading}
                     imageUrl={imageUrl}
                     imageRef={imageRef}
+                    displayImageForIndex={displayImageForIndex} // <-- PASAR LA FUNCIÓN A CardFront
                 />
                 
-                {/* ==================== CARD BACK ==================== */}
                 <CardBack cardData={cardData} />
                 
             </div>
